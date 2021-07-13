@@ -7,6 +7,9 @@ import requests
 
 
 def get_parameters():
+    # Add more options for adding parameters here,
+    # such as CLI args, AWS Secrets Manager, config file, etc.
+
     # Get parameters from environment variables
     return {
         "login_or_token": os.getenv(
@@ -27,11 +30,13 @@ if __name__ == "__main__":
     user = parameters["user"]
 
     # Logic should be added here to support other authentication in the future
+    # Used by the requests package, (user, login, password) also works
     auth = (user, login_or_token) if user else None
     g = Github(login_or_token=login_or_token)
 
     # Get all repos that are not forks and are not archived
-    # Only supports repos owned by an organization for now
+    # Only supports repos owned by an organization for now,
+    # but could be changed to users
     repos = g.get_organization(organization).get_repos()
     owned_repos = [r for r in repos if not r.fork and not r.archived]
 
@@ -43,7 +48,10 @@ if __name__ == "__main__":
 
         if auth:  # Not tested yet
             for workflow in disabled_workflows:
+                # There's no github API call for enabling the workflow,
+                # so the rest API should work here
                 enable_url = f"{workflow.url}/enable"
                 requests.put(enable_url, auth=auth)
         else:
+            # No authentication, so just output the disabled workflows
             print(disabled_workflows)
