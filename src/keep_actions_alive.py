@@ -7,10 +7,10 @@ import requests
 
 
 def get_parameters():
-    # Add more options for adding parameters here,
+    # Add more options for adding arguments here,
     # such as CLI args, AWS Secrets Manager, config file, etc.
 
-    # Get parameters from environment variables
+    # Get keyword arguments from environment variables
     return {
         "login_or_token": os.getenv(
             "GH_LOGIN_OR_TOKEN"
@@ -30,8 +30,9 @@ if __name__ == "__main__":
     user = parameters["user"]
 
     # Logic should be added here to support other authentication in the future
-    # Used by the requests package, (user, login, password) also works
+    # `auth` is used by the requests package
     auth = (user, login_or_token) if user else None
+    # auth = (user, login, password)
     g = Github(login_or_token=login_or_token)
 
     # Get all repos that are not forks and are not archived
@@ -48,8 +49,8 @@ if __name__ == "__main__":
 
         if auth:  # Not tested yet
             for workflow in disabled_workflows:
-                # There's no github API call for enabling the workflow,
-                # so the rest API should work here
+                # There's no  documented pygithub API call for enabling the
+                # workflow, so the rest API should work here
                 enable_url = f"{workflow.url}/enable"
                 requests.put(enable_url, auth=auth)
         else:
