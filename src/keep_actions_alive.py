@@ -12,27 +12,20 @@ def get_parameters():
 
     # Get keyword arguments from environment variables
     return {
-        "login_or_token": os.getenv(
-            "GH_LOGIN_OR_TOKEN"
-        ),
+        "login_or_token": os.getenv("GH_LOGIN_OR_TOKEN"),
         "organization": os.getenv("GH_ORGANIZATION"),
         "user": os.getenv("GH_USER"),
     }
 
 
-if __name__ == "__main__":
+def main():
     pp = pprint.PrettyPrinter(indent=4)
 
     parameters = get_parameters()
 
     login_or_token = parameters["login_or_token"]
     organization = parameters["organization"]
-    user = parameters["user"]
 
-    # Logic should be added here to support other authentication in the future
-    # `auth` is used by the requests package
-    auth = (user, login_or_token) if user else None
-    # auth = (user, login, password)
     g = Github(login_or_token=login_or_token)
 
     # Get all repos that are not forks and are not archived
@@ -47,12 +40,17 @@ if __name__ == "__main__":
             w for w in repo.get_workflows() if w.state == "disabled_inactivity"
         ]
 
-        if auth:  # Not tested yet
+        if login_or_token:  # Use token authentication
             for workflow in disabled_workflows:
                 # There's no  documented pygithub API call for enabling the
                 # workflow, so the rest API should work here
                 enable_url = f"{workflow.url}/enable"
-                requests.put(enable_url, auth=auth)
+                token_header = {"Authorization": f"Bearer {login_or_token}"}
+                requests.put(enable_url, headers=token_header)
         else:
             # No authentication, so just output the disabled workflows
-            print(disabled_workflows)
+            pp.pprint(disabled_workflows)
+
+
+if __name__ == "__main__":
+    main()
