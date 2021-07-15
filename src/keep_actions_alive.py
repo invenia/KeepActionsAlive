@@ -1,20 +1,35 @@
 #!/usr/bin/env python
 
 from github import Github
+import json
 import os
 import pprint
 import requests
+import boto3
+
+IS_LAMBDA = bool(os.getenv("AWS_EXECUTION_ENV"))
 
 
 def get_parameters():
     # Add more options for adding arguments here,
     # such as CLI args, AWS Secrets Manager, config file, etc.
 
+    # Running in a Lambda, so fetch parameters from AWS
+    if IS_LAMBDA:
+        sm_client = boto3.client("secretsmanager")
+        secret_key = os.getenv("GH_LOGIN_OR_TOKEN_KEY")
+        login_or_token = json.loads(sm_client.get_secret_value(SecretId=secret_key)[
+            "SecretString"
+        ])["Personal Access Token"]
+        return {
+            "login_or_token": login_or_token,
+            "organization": os.getenv("GH_ORGANIZATION"),
+        }
+
     # Get keyword arguments from environment variables
     return {
         "login_or_token": os.getenv("GH_LOGIN_OR_TOKEN"),
         "organization": os.getenv("GH_ORGANIZATION"),
-        "user": os.getenv("GH_USER"),
     }
 
 
