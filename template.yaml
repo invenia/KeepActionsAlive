@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  keepactionsalive
+
+Parameters:
+  PATSecretARN:
+    Description: >-
+      ARN of the SecretsManager Secret storing your GitHub personal access token (PAT).
+    Type: String
+  Organization:
+    Description: >-
+      Name of your GitHub organization to re-enable inactive workflows.
+    Type: String
+  UseExternalRepos:
+    Description: >-
+      Use the `repos.config` to enable workflows in repos outside of your organization.
+    Type: String
+    AllowedValues: [true, false]
+
+Resources:
+  KeepActionsAliveFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          PAT_SECRET_NAME: !Ref PATSecretARN
+          GH_ORGANIZATION: !Ref Organization
+          EXTERNAL_REPOS: !Ref UseExternalRepos
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: 'rate(59 days)'
+      Role: !GetAtt KeepActionsAliveRole.Arn
+      Timeout: 180  # 3 minutes
+      MemorySize: 1024
+
+  KeepActionsAliveRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref PATSecretARN
+
+Outputs:
+  KeepActionsAliveFunction:
+    Description: "KeepActionsAlive Lambda Function ARN"
+    Value: !GetAtt KeepActionsAliveFunction.Arn
