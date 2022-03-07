@@ -5,7 +5,7 @@ Automatically prevent your scheduled GitHub Actions from becoming disabled after
 ## Overview
 
 This package is meant to be deployed in an AWS environment.
-It contains a Lambda function which will run every `59 days`.
+It contains a Lambda function which will run every `20 days`.
 The Lambda function gets GitHub repositories belonging to an organization and hits the [enable workflow](https://docs.github.com/en/rest/reference/actions#enable-a-workflow) REST endpoint to re-enable the GitHub Actions workflow of each repository.
 Additionally, you can re-enable workflows for a repository outside of your organization by modifying the `src/repos.config` file with a list of `GitHub_Organization/Repository_Name` entries.
 ## Installation

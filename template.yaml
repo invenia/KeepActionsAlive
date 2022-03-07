@@ -34,7 +34,7 @@ Resources:
         Schedule:
           Type: Schedule
           Properties:
-            Schedule: 'rate(59 days)'
+            Schedule: 'rate(20 days)'
       Role: !GetAtt KeepActionsAliveRole.Arn
       Timeout: 180  # 3 minutes
       MemorySize: 1024
